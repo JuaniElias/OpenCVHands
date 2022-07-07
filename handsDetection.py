@@ -10,8 +10,8 @@ colors = {
     'green': (0, 255, 0),
     'red': (0, 0, 255)
 }
-rect1 = (10, 10)
-rect2 = (200, 200)
+rect1 = (200, 10)
+rect2 = (400, 200)
 
 # For webcam input:
 cap = cv2.VideoCapture(0)
@@ -46,10 +46,13 @@ with mp_hands.Hands(
                     mp_drawing_styles.get_default_hand_landmarks_style(),
                     mp_drawing_styles.get_default_hand_connections_style())
 
+            # Entro al rectangulo
             if rect1[0] <= results.multi_hand_landmarks[0].landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP].x * w <= \
-                rect2[0] and rect1[1] <= results.multi_hand_landmarks[0].landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP].y * h <= \
+                    rect2[0] and rect1[1] <= results.multi_hand_landmarks[0].landmark[
+                mp_hands.HandLandmark.INDEX_FINGER_TIP].y * h <= \
                     rect2[1]:
                 cv2.rectangle(image, rect1, rect2, colors['green'], 2)
+                cv2.imwrite('savedImage.jpg', image)
             else:
                 cv2.rectangle(image, rect1, rect2, colors['red'], 2)
         else:
