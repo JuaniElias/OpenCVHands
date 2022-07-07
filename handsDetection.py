@@ -36,7 +36,10 @@ with mp_hands.Hands(
                     mp_drawing_styles.get_default_hand_landmarks_style(),
                     mp_drawing_styles.get_default_hand_connections_style())
         # Flip the image horizontally for a selfie-view display.
-        cv2.imshow('MediaPipe Hands', cv2.flip(image, 1))
+        image_flipped = cv2.flip(image, 1)
+        cv2.rectangle(image_flipped, (10, 10), (200, 200), (255, 0, 0), 2)
+        cv2.imshow('MediaPipe Hands', image_flipped)
+
         if cv2.waitKey(5) & 0xFF == 27:
             break
 cap.release()
