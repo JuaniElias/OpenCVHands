@@ -1,5 +1,6 @@
 import cv2
 import mediapipe as mp
+import time
 
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
@@ -15,6 +16,19 @@ rect2 = (400, 200)
 
 # For webcam input:
 cap = cv2.VideoCapture(0)
+frame_width = int(cap.get(3))
+frame_height = int(cap.get(4))
+
+size = (frame_width, frame_height)
+
+# Clip inicializado
+clip = cv2.VideoWriter('output.mp4',
+                       cv2.VideoWriter_fourcc(*'MP4V'),
+                       10, size)
+
+secs_to_record = 1
+entered_rectangle = False
+
 with mp_hands.Hands(
         model_complexity=0,
         max_num_hands=4,
@@ -46,21 +60,28 @@ with mp_hands.Hands(
                     mp_drawing_styles.get_default_hand_landmarks_style(),
                     mp_drawing_styles.get_default_hand_connections_style())
 
-            # Entro al rectangulo
+            # Entro al rectángulo
             if rect1[0] <= results.multi_hand_landmarks[0].landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP].x * w <= \
                     rect2[0] and rect1[1] <= results.multi_hand_landmarks[0].landmark[
                 mp_hands.HandLandmark.INDEX_FINGER_TIP].y * h <= \
                     rect2[1]:
                 cv2.rectangle(image, rect1, rect2, colors['green'], 2)
-                cv2.imwrite('savedImage.jpg', image)
+                entered_rectangle = True
+                # Empieza el timer para grabar
+                stop_recording_sec = time.time() + secs_to_record
             else:
                 cv2.rectangle(image, rect1, rect2, colors['red'], 2)
         else:
             cv2.rectangle(image, rect1, rect2, colors['blue'], 2)
+
+        if entered_rectangle and time.time() < stop_recording_sec:
+            clip.write(image)
 
         cv2.imshow('MediaPipe Hands', image)
 
         # Salir con Esc o 'q'
         if cv2.waitKey(5) & 0xFF == 27 or cv2.waitKey(5) & 0xFF == ord('q'):
             break
+
+clip.release()
 cap.release()
