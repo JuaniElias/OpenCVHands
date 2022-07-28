@@ -21,12 +21,6 @@ frame_height = int(cap.get(4))
 
 size = (frame_width, frame_height)
 
-# Clip inicializado
-clip = cv2.VideoWriter('output.mp4',
-                       cv2.VideoWriter_fourcc(*'MP4V'),
-                       10, size)
-
-secs_to_record = 1
 entered_rectangle = False
 
 with mp_hands.Hands(
@@ -42,6 +36,10 @@ with mp_hands.Hands(
             # If loading a video, use 'break' instead of 'continue'.
             continue
         h, w, _ = image.shape
+        x_max = 0
+        y_max = 0
+        x_min = w
+        y_min = h
         # To improve performance, optionally mark the image as not writeable to
         # pass by reference.
         image.flags.writeable = False
@@ -60,28 +58,22 @@ with mp_hands.Hands(
                     mp_drawing_styles.get_default_hand_landmarks_style(),
                     mp_drawing_styles.get_default_hand_connections_style())
 
-            # Entro al rectángulo
-            if rect1[0] <= results.multi_hand_landmarks[0].landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP].x * w <= \
-                    rect2[0] and rect1[1] <= results.multi_hand_landmarks[0].landmark[
-                mp_hands.HandLandmark.INDEX_FINGER_TIP].y * h <= \
-                    rect2[1]:
-                cv2.rectangle(image, rect1, rect2, colors['green'], 2)
-                entered_rectangle = True
-                # Empieza el timer para grabar
-                stop_recording_sec = time.time() + secs_to_record
-            else:
-                cv2.rectangle(image, rect1, rect2, colors['red'], 2)
-        else:
-            cv2.rectangle(image, rect1, rect2, colors['blue'], 2)
+            for lm in hand_landmarks.landmark:
+                x, y = int(lm.x * w), int(lm.y * h)
+                if x > x_max:
+                    x_max = x
+                if x < x_min:
+                    x_min = x
+                if y > y_max:
+                    y_max = y
+                if y < y_min:
+                    y_min = y
 
-        if entered_rectangle and time.time() < stop_recording_sec:
-            clip.write(image)
-
+            cv2.rectangle(image, (x_min, y_min), (x_max, y_max), colors['green'], 2)
         cv2.imshow('MediaPipe Hands', image)
 
         # Salir con Esc o 'q'
         if cv2.waitKey(5) & 0xFF == 27 or cv2.waitKey(5) & 0xFF == ord('q'):
             break
 
-clip.release()
 cap.release()
